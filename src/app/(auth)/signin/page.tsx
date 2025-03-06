@@ -53,7 +53,7 @@ export default function SignInForm() {
       }
     }
     else{
-      router.replace('/');
+      router.replace('/home');
       toast({
         title: 'Login Successful',
         description: 'Redirecting to home page',

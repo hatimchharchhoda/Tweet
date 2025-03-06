@@ -5,7 +5,7 @@ import AuthProvider from "@/context/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
 // import { Provider } from 'react-redux';
 //import store ,{ persistor } from '@/store/store';  Import both store and persistor
-import Header from "@/components/Header";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +30,8 @@ export default function RootLayout({
           {/* PersistGate ensures state is rehydrated before rendering */}
           {/* <PersistGate loading={null} persistor={persistor}> */}
             <AuthProvider>
-              <Header/>
-              {children}
+              <Navbar/>
+              <main className="pt-16">{children}</main>
               <Toaster />
             </AuthProvider>
           {/* </PersistGate>

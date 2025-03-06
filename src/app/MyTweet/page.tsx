@@ -3,6 +3,20 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Send, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { LikeComponent } from "@/components/Likes";
+import { CommentsSection } from "@/components/CommentSection";
+import DeleteTweet from "@/components/DeleteTweet";
+
+interface Comment {
+  _id: string;
+  user: { username: string };
+  comment: string;
+  date: string;
+}
 
 interface Tweet {
   _id: string;
@@ -10,6 +24,7 @@ interface Tweet {
   user: { username: string };
   date: string;
   likes: number;
+  comments?: Comment[];
 }
 
 export default function MyTweets() {
@@ -44,59 +59,116 @@ export default function MyTweets() {
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">My Tweets</h1>
+  const handleCommentAdded = (tweetId: string, comment: Comment) => {
+    setTweets(prevTweets => 
+      prevTweets.map(tweet => 
+        tweet._id === tweetId 
+          ? { ...tweet, comments: [...(tweet.comments || []), comment] }
+          : tweet
+      )
+    );
+  };
 
-      {/* New Tweet Input */}
-      <div className="flex items-start space-x-3 mb-6 p-4 border rounded-lg shadow">
-        {/* Profile Icon */}
-        <div className="h-10 w-10 bg-blue-500 text-white flex items-center justify-center rounded-full font-bold text-lg">
-          {session?.user?.username?.slice(0, 2).toUpperCase()}
+  const handleTweetDeleted = (tweetId: string) => {
+    setTweets((prev) => prev.filter((tweet) => tweet._id !== tweetId));
+  };
+
+  return (
+    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
+        {/* Header */}
+        <div className="py-4 px-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
+            <User className="text-primary" /> My Tweets
+          </h1>
+          {session?.user && (
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 bg-primary text-white flex items-center justify-center rounded-full font-bold">
+                {session.user.username?.slice(0, 2).toUpperCase()}
+              </div>
+              <span className="font-medium text-gray-700">@{session.user.username}</span>
+            </div>
+          )}
         </div>
 
-        {/* Text Input */}
-        <textarea
-          className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-400"
-          rows={2}
-          placeholder="What's on your mind?"
-          value={newTweet}
-          onChange={(e) => setNewTweet(e.target.value)}
-        />
+        {/* Main Content Area */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Tweet Composition Area */}
+          <div className="w-1/3 border-r border-gray-200 bg-white/60 backdrop-blur-sm p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
+            >
+              <h2 className="text-xl font-semibold mb-4">Compose Tweet</h2>
+              <Textarea
+                className="w-full h-40 focus:ring-2 focus:ring-primary/50 mb-4"
+                placeholder="What's on your mind?"
+                value={newTweet}
+                onChange={(e) => setNewTweet(e.target.value)}
+              />
+              <Button 
+                onClick={handlePostTweet}
+                className="w-full bg-primary hover:bg-primary/90 flex items-center justify-center gap-2"
+              >
+                <Send size={16} /> Tweet
+              </Button>
+            </motion.div>
+          </div>
 
-        {/* Post Button */}
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          onClick={handlePostTweet}
-        >
-          Tweet
-        </button>
-      </div>
+          {/* Tweet List Area */}
+          <div className="w-2/3 overflow-y-auto p-4 space-y-4">
+            {tweets.length === 0 ? (
+              <p className="text-muted-foreground text-center">No tweets yet.</p>
+            ) : (
+              tweets.map((tweet) => (
+                <motion.div 
+                  key={tweet._id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-4 bg-white/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 flex flex-col"
+                >
+                  {/* Profile Icon and Tweet Content */}
+                  <div className="flex space-x-3 mb-3">
+                    <div className="h-10 w-10 bg-primary text-white flex items-center justify-center rounded-full font-bold text-lg">
+                      {tweet.user.username.slice(0, 2).toUpperCase()}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <p className="font-semibold text-primary">@{tweet.user.username}</p>
+                      <p className="text-foreground">{tweet.tweet}</p>
+                    </div>
+                    <DeleteTweet 
+                      tweetId={tweet._id} 
+                      onDelete={() => handleTweetDeleted(tweet._id)}
+                    />
+                  </div> 
 
-      {/* Tweet List */}
-      <div className="space-y-4">
-        {tweets.length === 0 ? (
-          <p className="text-gray-500 text-center">No tweets yet.</p>
-        ) : (
-          tweets.map((tweet) => (
-            <div key={tweet._id} className="p-4 border rounded-lg shadow flex space-x-3">
-              {/* Profile Icon */}
-              <div className="h-10 w-10 bg-blue-500 text-white flex items-center justify-center rounded-full font-bold text-lg">
-                {tweet.user.username.slice(0, 2).toUpperCase()}
-              </div>
-
-              {/* Tweet Content */}
-              <div className="flex-1">
-                <p className="font-bold">@{tweet.user.username}</p>
-                <p className="text-gray-800">{tweet.tweet}</p>
-                <div className="text-sm text-gray-500 mt-2 flex justify-between">
-                  <span>{new Date(tweet.date).toLocaleString()}</span>
-                  <span>❤️ {tweet.likes}</span>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+                  {/* Date and Interaction Buttons */}
+                  <div className="text-sm text-muted-foreground mt-2 flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <LikeComponent 
+                        initialLikes={tweet.likes || 0} 
+                        tweetId={tweet._id} 
+                        userId={session?.user?.id || ''} 
+                      />
+                    </div>
+                    <span>{new Date(tweet.date).toLocaleString()}</span>
+                  </div>
+                  {/* Comments Section */}
+                  <div className="w-full border-t border-gray-200 pt-3">
+                    <CommentsSection 
+                      tweetId={tweet._id}
+                      onCommentAdded={(comment) => handleCommentAdded(tweet._id, comment)}
+                    />
+                  </div>
+                  </motion.div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
