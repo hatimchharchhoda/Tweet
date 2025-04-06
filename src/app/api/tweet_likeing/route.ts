@@ -89,3 +89,53 @@ export async function POST(req: NextRequest) {
     }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  // Ensure database connection
+  await connectDB();
+
+  try {
+    // Get server-side session
+    const session = await getServerSession(authOptions);
+
+    // Check if user is authenticated
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Get the tweetId from URL parameters
+    const url = new URL(req.url);
+    const tweetId = url.searchParams.get('tweetId');
+
+    // Validate tweet ID
+    if (!tweetId) {
+      return NextResponse.json({ error: 'Tweet ID is required' }, { status: 400 });
+    }
+
+    // Find the user and tweet to ensure they exist
+    const user = await UserModel.findById(session.user.id);
+    const tweet = await Tweets.findById(tweetId);
+
+    if (!user || !tweet) {
+      return NextResponse.json({ error: 'User or Tweet not found' }, { status: 404 });
+    }
+
+    // Check if like already exists and is active
+    const existingLike = await Likes.findOne({ 
+      user: user._id, 
+      tweet: tweetId 
+    });
+    
+    return NextResponse.json({
+      isLiked: existingLike ? existingLike.liked : false,
+      likeCount: tweet.likes || 0
+    });
+    
+  } catch (error) {
+    console.error('Like status check error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}

@@ -95,7 +95,7 @@ export default function SignUpForm() {
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4 text-gray-800">
-            FreeTake
+            TweetConnect
           </h1>
           <p className="mb-6 text-gray-600">Sign up to start tweeting</p>
         </div>

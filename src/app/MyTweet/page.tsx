@@ -5,11 +5,13 @@ import { useSession } from "next-auth/react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, User } from "lucide-react";
+import { Loader2, Send, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { LikeComponent } from "@/components/Likes";
 import { CommentsSection } from "@/components/CommentSection";
 import DeleteTweet from "@/components/DeleteTweet";
+import { toast } from "@/hooks/use-toast";
+import AnimatedBackground from "@/components/AnimatedBackground";
 
 interface Comment {
   _id: string;
@@ -31,6 +33,7 @@ export default function MyTweets() {
   const { data: session } = useSession();
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [newTweet, setNewTweet] = useState("");
+  const [tweeted, setTweeted] = useState(false);
 
   useEffect(() => {
     if (session?.user?.username) {
@@ -49,13 +52,24 @@ export default function MyTweets() {
 
   const handlePostTweet = async () => {
     if (!newTweet.trim()) return;
-
+    setTweeted(true);
     try {
       await axios.post("/api/tweet_send", { user: session?.user?.username, tweet: newTweet });
       setNewTweet("");
       fetchTweets(); // Refresh tweets after posting
+      setTweeted(false);
+      toast({
+        title: "Success",
+        description: "New tweet posted",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Error posting tweet:", error);
+      toast({
+        title: "Error",
+        description: "Error posting tweet",
+        variant: "destructive",
+      });
     }
   };
 
@@ -74,32 +88,25 @@ export default function MyTweets() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="flex h-screen w-full ">
+      <AnimatedBackground/>
       <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
         {/* Header */}
         <div className="py-4 px-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex justify-between items-center">
           <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
             <User className="text-primary" /> My Tweets
           </h1>
-          {session?.user && (
-            <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 bg-primary text-white flex items-center justify-center rounded-full font-bold">
-                {session.user.username?.slice(0, 2).toUpperCase()}
-              </div>
-              <span className="font-medium text-gray-700">@{session.user.username}</span>
-            </div>
-          )}
         </div>
 
         {/* Main Content Area */}
         <div className="flex flex-1 overflow-hidden">
           {/* Tweet Composition Area */}
-          <div className="w-1/3 border-r border-gray-200 bg-white/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="w-1/3 border-r border-gray-200 bg-white/60 backdrop-blur-sm p-4 flex flex-col overflow-hidden">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-4"
+              className="space-y-4 flex flex-col flex-1"
             >
               <h2 className="text-xl font-semibold mb-4">Compose Tweet</h2>
               <Textarea
@@ -111,8 +118,16 @@ export default function MyTweets() {
               <Button 
                 onClick={handlePostTweet}
                 className="w-full bg-primary hover:bg-primary/90 flex items-center justify-center gap-2"
+                disabled={tweeted}
               >
-                <Send size={16} /> Tweet
+                {tweeted ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Tweeting
+                  </>
+                ) : (
+                  <><Send size={16} /> Tweet</>
+                )}
               </Button>
             </motion.div>
           </div>

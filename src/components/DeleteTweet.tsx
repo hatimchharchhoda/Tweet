@@ -5,6 +5,7 @@ import { MoreVertical, Trash2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { toast } from "@/hooks/use-toast";
 
 interface TweetActionsProps {
   tweetId: string;
@@ -35,8 +36,19 @@ const DeleteTweet: React.FC<TweetActionsProps> = ({ tweetId, onDelete }) => {
         console.log("✅ Tweet deleted successfully");
         onDelete?.(); // Notify parent component to update UI
       }
+
+      toast({
+        title: "Success",
+        description: "Tweet deleted successfully",
+        variant: "default",
+      });
     } catch (error) {
       console.error("🚨 Error deleting tweet:", error);
+      toast({
+        title: "Failed",
+        description: "Failed deleting tweet",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
       setConfirmDelete(false);

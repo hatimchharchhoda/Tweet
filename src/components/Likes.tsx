@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,11 +20,32 @@ export const LikeComponent: React.FC<LikeComponentProps> = ({
   const [likes, setLikes] = useState(initialLikes);
   const [isLiked, setIsLiked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check initial like status when component mounts
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`/api/tweet_likeing`, {
+          params: { tweetId }
+        });
+        
+        setIsLiked(response.data.isLiked);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch like status', error);
+        setIsLoading(false);
+      }
+    };
+
+    checkLikeStatus();
+  }, [tweetId, userId]);
 
   const handleLike = async () => {
     try {
       // Prevent multiple simultaneous interactions
-      if (isAnimating) return;
+      if (isAnimating || isLoading) return;
 
       setIsAnimating(true);
 
@@ -71,50 +92,59 @@ export const LikeComponent: React.FC<LikeComponentProps> = ({
           variant="ghost" 
           size="icon"
           onClick={handleLike}
-          disabled={isAnimating}
+          disabled={isAnimating || isLoading}
           className="relative"
         >
-          <AnimatePresence mode="wait">
-            {isLiked ? (
-              <motion.div
-                key="liked"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Heart 
-                  className="text-rose-500" 
-                  fill="currentColor" 
-                  size={24} 
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="not-liked"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Heart 
-                  className="text-gray-400 hover:text-rose-300" 
-                  size={24} 
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {isLoading ? (
+            <div className="animate-pulse">
+              <Heart 
+                className="text-gray-300" 
+                size={24} 
+              />
+            </div>
+          ) : (
+            <AnimatePresence mode="wait">
+              {isLiked ? (
+                <motion.div
+                  key="liked"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Heart 
+                    className="text-rose-500" 
+                    fill="currentColor" 
+                    size={24} 
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="not-liked"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Heart 
+                    className="text-gray-400 hover:text-rose-300" 
+                    size={24} 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </Button>
       </motion.div>
 
       <AnimatePresence mode="wait">
         <motion.span
-          key={likes}
+          key={`${likes}-${isLoading}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.2 }}
-          className="text-sm font-medium text-gray-600"
+          className={`text-sm font-medium ${isLoading ? "text-gray-300" : "text-gray-600"}`}
         >
           {likes}
         </motion.span>
@@ -122,19 +152,3 @@ export const LikeComponent: React.FC<LikeComponentProps> = ({
     </div>
   );
 };
-
-// Example usage in a tweet component
-// export const Likes = ({ tweet }) => {
-//   return (
-//     <div className="p-4 border rounded-lg">
-//       <p>{tweet.content}</p>
-//       <div className="mt-2 flex justify-between items-center">
-//         <LikeComponent 
-//           initialLikes={tweet.likes} 
-//           tweetId={tweet._id} 
-//           userId={tweet.userId} 
-//         />
-//       </div>
-//     </div>
-//   );
-// };

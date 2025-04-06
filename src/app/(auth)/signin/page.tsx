@@ -17,8 +17,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { signInSchema } from '@/schemas/signInSchema';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function SignInForm() {
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -30,6 +35,7 @@ export default function SignInForm() {
 
   const { toast } = useToast();
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+    setIsSubmitting(true);
     console.log(data)
     const result = await signIn('credentials', {
       redirect: false,
@@ -53,7 +59,7 @@ export default function SignInForm() {
       }
     }
     else{
-      router.replace('/home');
+      router.replace('/Home');
       toast({
         title: 'Login Successful',
         description: 'Redirecting to home page',
@@ -75,7 +81,7 @@ export default function SignInForm() {
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 tracking-tight lg:text-5xl mb-6">
-            Welcome Back
+            TweetConnect
           </h1>
           <p className="text-gray-600">Sign in to continue</p>
         </div>
@@ -113,8 +119,16 @@ export default function SignInForm() {
             <Button
               type="submit"
               className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 transition-all"
+              disabled={isSubmitting}
             >
-              Sign In
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
         </Form>

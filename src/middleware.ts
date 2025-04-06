@@ -6,10 +6,10 @@ export const config = {
     matcher: [
       '/signin', 
       '/signup',
-      '/trending', 
-      '/home', 
+      '/Trending', 
+      '/Home', 
       '/MyTweet',
-      '/profile'
+      '/Profile',
     ],
   };
   
@@ -19,10 +19,10 @@ export async function middleware(request: NextRequest) {
   // Redirect to dashboard if the user is already authenticated
   // and trying to access sign-in, sign-up, or home page
   if (!token && 
-    (url.pathname.startsWith('/trending') ||
-      url.pathname.startsWith('/home') ||
+    (url.pathname.startsWith('/Trending') ||
+      url.pathname.startsWith('/Home') ||
       url.pathname.startsWith('/MyTweet') || 
-      url.pathname.startsWith('/profile')) ){
+      url.pathname.startsWith('/Profile')) ){
     return NextResponse.redirect(new URL('/signin', request.url));
   }
   
@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     (url.pathname.startsWith('/signin') ||
       url.pathname.startsWith('/signup'))
   ) {
-    return NextResponse.redirect(new URL('/home', request.url));
+    return NextResponse.redirect(new URL('/Home', request.url));
   }
 
   return NextResponse.next();
