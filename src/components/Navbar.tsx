@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { Home, Flame, User, MessageSquare } from "lucide-react";
+import { Home, Flame, User, MessageSquare, Globe } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +40,11 @@ const Navbar = () => {
         <Link href="/Trending" className="flex items-center space-x-1 text-gray-700 hover:text-primary">
           <Flame size={18} />
           <span>Trending</span>
+        </Link>
+
+        <Link href="/News" className="flex items-center space-x-1 text-gray-700 hover:text-primary">
+          <Globe size={18} />
+          <span>Latest News</span>
         </Link>
       </div>
 

@@ -57,6 +57,7 @@ export default function SignInForm() {
           variant: 'destructive',
         });
       }
+      setIsSubmitting(false);
     }
     else{
       router.replace('/Home');

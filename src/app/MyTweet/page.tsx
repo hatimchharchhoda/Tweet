@@ -12,6 +12,7 @@ import { CommentsSection } from "@/components/CommentSection";
 import DeleteTweet from "@/components/DeleteTweet";
 import { toast } from "@/hooks/use-toast";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { AIChatBot } from "@/components/AIChatBot";
 
 interface Comment {
   _id: string;
@@ -185,6 +186,7 @@ export default function MyTweets() {
           </div>
         </div>
       </div>
+      <AIChatBot /> 
     </div>
   );
 }

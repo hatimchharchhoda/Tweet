@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
-import { Home, Loader2, RefreshCw } from "lucide-react";
+import {Loader2} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LikeComponent } from "@/components/Likes";
 import { CommentsSection } from "@/components/CommentSection";
 import { toast } from "@/hooks/use-toast";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { AIChatBot } from "@/components/AIChatBot";
 
 interface Comment {
   _id: string;
@@ -77,19 +77,6 @@ export default function HomePage() {
     }
     
   }, [loading, tweets, refreshing]);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setPage(1);
-    setHasMore(true);
-    fetchTweets(1);
-
-    toast({
-      title: "Refreshing",
-      description: "Getting the latest tweets",
-      variant: "default",
-    });
-  };
 
   // Fixed Intersection Observer for infinite scroll
   useEffect(() => {
@@ -174,27 +161,6 @@ export default function HomePage() {
     <div className="flex h-screen w-full relative">
       <AnimatedBackground />
       <div className="w-full max-w-5xl mx-auto flex flex-col h-full">
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="py-4 px-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center"
-        >
-          <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-            <Home className="text-primary" /> Home
-          </h1>
-          <div className="flex items-center space-x-4">
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              className="ml-2 flex items-center gap-2"
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
-        </motion.div>
 
         <div className="flex-1 overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
           <div className="w-full p-4 space-y-4 pb-20">
@@ -318,6 +284,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      <AIChatBot /> 
     </div>
   );
 }
