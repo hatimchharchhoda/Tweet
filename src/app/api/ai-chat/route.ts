@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     
     switch (messageType) {
       case "news":
-        prompt = `Provide me with the latest news headlines and brief summaries (as of ${new Date().toLocaleDateString()}). Avoid bolded headings or bullet points. Focus on major global news in various categories like politics, technology, health, and entertainment. Format your response in a concise, engaging way.`;
+        prompt = message!==null? `You are a news assistant. You only respond with information related to trending topics, global news, technology, politics. Do NOT answer personal, philosophical, medical, or unrelated lifestyle questions. If asked such questions, politely decline. where user asked the question: ${message}` : `Provide me with the latest news headlines and brief summaries (as of ${new Date().toLocaleDateString()}). Avoid bolded headings or bullet points. Focus on major global news in various categories like politics, technology, health, and entertainment. Format your response in a concise, engaging way.`;
         break;
       case "trending":
         prompt = `What topics, hashtags, or discussions are trending on social media today (${new Date().toLocaleDateString()})? Mention top 3-5 trending topics with brief context on why they're popular. Avoid bolded. Include topics from social platforms like Twitter/X, Reddit, TikTok, etc.`;

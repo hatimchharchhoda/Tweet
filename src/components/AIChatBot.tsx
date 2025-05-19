@@ -1,19 +1,19 @@
-// components/AIChatBot.tsx
+// Enhanced AIChatBot.tsx UI/UX Version
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { 
-  Bot, 
-  User, 
-  X, 
-  Send, 
-  MessageSquare, 
-  TrendingUp, 
-  Newspaper, 
-  Globe
+import {
+  Bot,
+  User,
+  X,
+  Send,
+  MessageSquare,
+  TrendingUp,
+  Newspaper,
+  Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -35,23 +35,22 @@ export function AIChatBot({ className }: AIChatBotProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Changed from useState to just a constant since we don't modify it
+
   const suggestedTopics = [
-    { label: "Latest News", icon: <Newspaper size={16} />, type: "news" as const },
-    { label: "What's Trending", icon: <TrendingUp size={16} />, type: "trending" as const },
-    { label: "Global Updates", icon: <Globe size={16} />, type: "world" as const },
-    { label: "Help me with...", icon: <MessageSquare size={16} />, type: "general" as const },
-  ];
-  
+    { label: "Latest News", icon: <Newspaper size={16} />, type: "news" },
+    { label: "What's Trending", icon: <TrendingUp size={16} />, type: "trending" },
+    { label: "Global Updates", icon: <Globe size={16} />, type: "world" },
+    { label: "Help me with...", icon: <MessageSquare size={16} />, type: "general" },
+  ] satisfies { label: string; icon: React.ReactNode; type: "news" | "trending" | "general" | "world" }[];
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      // Add welcome message when chat is opened for the first time
       const welcomeMessage: Message = {
         id: Date.now().toString(),
-        content: "Hello! I'm your AI assistant. I can help you with the latest news, trending topics, or answer any questions you might have. What would you like to know today?",
+        content:
+          "👋 Hello! I'm your AI assistant. Ask me about the latest news, global updates, or trending topics!",
         sender: "bot",
         timestamp: new Date(),
       };
@@ -60,62 +59,60 @@ export function AIChatBot({ className }: AIChatBotProps) {
   }, [isOpen, messages.length]);
 
   useEffect(() => {
-    // Scroll to bottom whenever messages update
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
-  const handleSendMessage = async (content: string, type?: "news" | "trending" | "general" | "world") => {
+  const handleSendMessage = async (
+    content: string,
+    type?: "news" | "trending" | "general" | "world"
+  ) => {
     if (!content.trim()) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
       sender: "user",
       timestamp: new Date(),
-      type
+      type,
     };
-    
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
-      // Send message to AI API
       const response = await axios.post("/api/ai-chat", {
         message: content,
-        messageType: type || "general"
+        messageType: type || "general",
       });
 
-      // Add bot response
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: response.data.message,
         sender: "bot",
         timestamp: new Date(),
-        type
+        type,
       };
-      
+
       setMessages((prev) => [...prev, botMessage]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error("Error sending message to AI:", error);
       toast({
         title: "Error",
-        description: "Failed to get a response from the AI assistant",
+        description: "Failed to get response from AI.",
         variant: "destructive",
       });
-      
-      // Add error bot message
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-      
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: "⚠️ Oops! Something went wrong. Try again later.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -126,127 +123,113 @@ export function AIChatBot({ className }: AIChatBotProps) {
     handleSendMessage(input);
   };
 
-  const handleSuggestedTopic = (topic: string, type: "news" | "trending" | "general" | "world") => {
+  const handleSuggestedTopic = (
+    topic: string,
+    type: "news" | "trending" | "general" | "world"
+  ) => {
     handleSendMessage(topic, type);
   };
 
   return (
     <>
-      {/* Chat toggle button */}
-      <Button
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 rounded-full p-3 shadow-lg ${className}`}
-        variant="default"
+        className={`fixed bottom-6 right-6 z-50 rounded-full p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:scale-105 transition-all ${className}`}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
       >
         {isOpen ? <X size={24} /> : <Bot size={24} />}
-      </Button>
+      </motion.button>
 
-      {/* Chat window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-6 w-80 sm:w-96 h-96 bg-white rounded-xl shadow-xl border border-gray-200 flex flex-col overflow-hidden z-50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-24 right-6 w-[22rem] sm:w-96 max-h-[70vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden z-50"
           >
-            {/* Header */}
-            <div className="bg-primary text-white p-3 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Bot size={18} />
-                <h3 className="font-medium">AI Assistant</h3>
+                <h3 className="text-md font-semibold">AI Assistant</h3>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full hover:bg-white/20"
                 onClick={() => setIsOpen(false)}
+                className="hover:bg-white/20 text-white"
               >
-                <X size={16} className="text-white" />
+                <X size={16} />
               </Button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 bg-gray-50">
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, x: msg.sender === "user" ? 50 : -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={`flex ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
+                    msg.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-lg p-3 ${
-                      message.sender === "user"
-                        ? "bg-primary text-white"
-                        : "bg-gray-100 text-gray-800"
+                    className={`rounded-xl px-4 py-2 max-w-[75%] text-sm shadow-sm ${
+                      msg.sender === "user"
+                        ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+                        : "bg-white text-gray-800 border border-gray-200"
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      {message.sender === "user" ? (
-                        <User size={14} className="text-white/80" />
-                      ) : (
-                        <Bot size={14} className="text-primary/80" />
-                      )}
-                      <span className="text-xs opacity-70">
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                    <div className="flex items-center gap-2 text-xs opacity-70 mb-1">
+                      {msg.sender === "user" ? <User size={12} /> : <Bot size={12} />}
+                      <span>
+                        {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
-                      {message.type && (
-                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/20">
-                          {message.type}
-                        </span>
-                      )}
+                      {msg.type && <span className="ml-auto uppercase">{msg.type}</span>}
                     </div>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p>{msg.content}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-lg p-3 max-w-[75%]">
+                  <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <Bot size={14} className="text-primary" />
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-                      </div>
+                      <Bot size={12} className="text-blue-500" />
+                      <span className="animate-pulse text-gray-500">Typing...</span>
                     </div>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* Suggested topics */}
+            
             {messages.length < 3 && (
-              <div className="px-3 py-2 border-t border-gray-100">
+              <div className="bg-white px-4 py-3 border-t border-gray-100">
                 <div className="flex flex-wrap gap-2">
-                  {suggestedTopics.map((topic, index) => (
+                  {suggestedTopics.map((t, i) => (
                     <button
-                      key={index}
-                      onClick={() => handleSuggestedTopic(topic.label, topic.type)}
-                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs flex items-center gap-1 transition-colors"
+                      key={i}
+                      onClick={() => handleSuggestedTopic(t.label, t.type)}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1.5 rounded-full text-xs flex items-center gap-1 transition"
                     >
-                      {topic.icon}
-                      {topic.label}
+                      {t.icon} {t.label}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Input */}
-            <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200 flex gap-2">
+            <form onSubmit={handleSubmit} className="bg-white p-3 border-t border-gray-200 flex gap-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1"
+                placeholder="Type your message..."
+                className="flex-1 text-sm"
                 disabled={isLoading}
               />
               <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>

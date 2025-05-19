@@ -13,6 +13,7 @@ import DeleteTweet from "@/components/DeleteTweet";
 import { toast } from "@/hooks/use-toast";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { AIChatBot } from "@/components/AIChatBot";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Comment {
   _id: string;
@@ -37,9 +38,7 @@ export default function MyTweets() {
   const [tweeted, setTweeted] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.username) {
-      fetchTweets();
-    }
+    if (session?.user?.username) fetchTweets();
   }, [session]);
 
   const fetchTweets = async () => {
@@ -57,27 +56,19 @@ export default function MyTweets() {
     try {
       await axios.post("/api/tweet_send", { user: session?.user?.username, tweet: newTweet });
       setNewTweet("");
-      fetchTweets(); // Refresh tweets after posting
+      fetchTweets();
       setTweeted(false);
-      toast({
-        title: "Success",
-        description: "New tweet posted",
-        variant: "default",
-      });
+      toast({ title: "Success", description: "New tweet posted" });
     } catch (error) {
       console.error("Error posting tweet:", error);
-      toast({
-        title: "Error",
-        description: "Error posting tweet",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Error posting tweet", variant: "destructive" });
     }
   };
 
   const handleCommentAdded = (tweetId: string, comment: Comment) => {
-    setTweets(prevTweets => 
-      prevTweets.map(tweet => 
-        tweet._id === tweetId 
+    setTweets(prevTweets =>
+      prevTweets.map(tweet =>
+        tweet._id === tweetId
           ? { ...tweet, comments: [...(tweet.comments || []), comment] }
           : tweet
       )
@@ -85,108 +76,103 @@ export default function MyTweets() {
   };
 
   const handleTweetDeleted = (tweetId: string) => {
-    setTweets((prev) => prev.filter((tweet) => tweet._id !== tweetId));
+    setTweets(prev => prev.filter(tweet => tweet._id !== tweetId));
   };
 
   return (
-    <div className="flex h-screen w-full ">
-      <AnimatedBackground/>
-      <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
-        {/* Header */}
-        <div className="py-4 px-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-            <User className="text-primary" /> My Tweets
-          </h1>
+    <div className="flex h-screen w-full bg-background text-foreground">
+      <AnimatedBackground />
+
+      <div className="flex w-full h-full z-10 max-w-7xl mx-auto">
+        {/* Sidebar Composer */}
+        <div className="w-1/3 bg-white/80 border-r border-gray-200 p-6 backdrop-blur-md flex flex-col gap-6">
+          <motion.h1
+            className="text-2xl font-bold flex items-center gap-3 text-primary"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <User /> My Tweets
+          </motion.h1>
+
+          <motion.div
+            className="flex flex-col gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Textarea
+              placeholder="What's on your mind?"
+              value={newTweet}
+              onChange={(e) => setNewTweet(e.target.value)}
+              className="min-h-[120px] resize-none"
+            />
+            <Button
+              onClick={handlePostTweet}
+              className="w-full flex gap-2 items-center justify-center"
+              disabled={tweeted}
+            >
+              {tweeted ? <><Loader2 className="w-4 h-4 animate-spin" /> Tweeting</> : <><Send size={16} /> Tweet</>}
+            </Button>
+          </motion.div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Tweet Composition Area */}
-          <div className="w-1/3 border-r border-gray-200 bg-white/60 backdrop-blur-sm p-4 flex flex-col overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4 flex flex-col flex-1"
+        {/* Feed Section */}
+        <ScrollArea className="w-2/3 p-6 overflow-y-auto">
+          {tweets.length === 0 ? (
+            <p className="text-muted-foreground text-center mt-20">No tweets yet.</p>
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+              }}
+              className="space-y-4"
             >
-              <h2 className="text-xl font-semibold mb-4">Compose Tweet</h2>
-              <Textarea
-                className="w-full h-40 focus:ring-2 focus:ring-primary/50 mb-4"
-                placeholder="What's on your mind?"
-                value={newTweet}
-                onChange={(e) => setNewTweet(e.target.value)}
-              />
-              <Button 
-                onClick={handlePostTweet}
-                className="w-full bg-primary hover:bg-primary/90 flex items-center justify-center gap-2"
-                disabled={tweeted}
-              >
-                {tweeted ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Tweeting
-                  </>
-                ) : (
-                  <><Send size={16} /> Tweet</>
-                )}
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* Tweet List Area */}
-          <div className="w-2/3 overflow-y-auto p-4 space-y-4">
-            {tweets.length === 0 ? (
-              <p className="text-muted-foreground text-center">No tweets yet.</p>
-            ) : (
-              tweets.map((tweet) => (
-                <motion.div 
+              {tweets.map((tweet) => (
+                <motion.div
                   key={tweet._id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="p-4 bg-white/70 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 flex flex-col"
+                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                  className="bg-white/80 rounded-xl p-4 shadow hover:shadow-md border border-gray-200 backdrop-blur"
                 >
-                  {/* Profile Icon and Tweet Content */}
-                  <div className="flex space-x-3 mb-3">
-                    <div className="h-10 w-10 bg-primary text-white flex items-center justify-center rounded-full font-bold text-lg">
-                      {tweet.user.username.slice(0, 2).toUpperCase()}
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                        {tweet.user.username.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-primary">@{tweet.user.username}</p>
+                        <p className="text-sm md:text-base text-gray-800 mt-1">{tweet.tweet}</p>
+                      </div>
                     </div>
-                    
-                    <div className="flex-1">
-                      <p className="font-semibold text-primary">@{tweet.user.username}</p>
-                      <p className="text-foreground">{tweet.tweet}</p>
-                    </div>
-                    <DeleteTweet 
-                      tweetId={tweet._id} 
-                      onDelete={() => handleTweetDeleted(tweet._id)}
-                    />
-                  </div> 
+                    <DeleteTweet tweetId={tweet._id} onDelete={() => handleTweetDeleted(tweet._id)} />
+                  </div>
 
-                  {/* Date and Interaction Buttons */}
-                  <div className="text-sm text-muted-foreground mt-2 flex justify-between items-center">
-                    <div className="flex items-center space-x-3">
-                      <LikeComponent 
-                        initialLikes={tweet.likes || 0} 
-                        tweetId={tweet._id} 
-                        userId={session?.user?.id || ''} 
-                      />
-                    </div>
+                  <div className="flex justify-between items-center text-sm text-muted-foreground mt-2">
+                    <LikeComponent
+                      initialLikes={tweet.likes || 0}
+                      tweetId={tweet._id}
+                      userId={session?.user?.id || ''}
+                    />
                     <span>{new Date(tweet.date).toLocaleString()}</span>
                   </div>
-                  {/* Comments Section */}
-                  <div className="w-full border-t border-gray-200 pt-3">
-                    <CommentsSection 
+
+                  <div className="pt-3 border-t border-gray-200 mt-3">
+                    <CommentsSection
                       tweetId={tweet._id}
                       onCommentAdded={(comment) => handleCommentAdded(tweet._id, comment)}
                     />
                   </div>
-                  </motion.div>
-              ))
-            )}
-          </div>
-        </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </ScrollArea>
       </div>
-      <AIChatBot /> 
+
+      <AIChatBot />
     </div>
   );
 }

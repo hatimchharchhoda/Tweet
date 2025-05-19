@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LikeComponent } from "@/components/Likes";
 import { CommentsSection } from "@/components/CommentSection";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { AIChatBot } from "@/components/AIChatBot";
 
 interface Tweet {
   _id: string;
@@ -194,7 +195,7 @@ export default function TrendingPage() {
     <div className="flex h-screen w-full relative">
       <AnimatedBackground />
       <div className="w-full max-w-5xl mx-auto flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+        <div className="flex-1 p-4 space-y-4 pb-20">
           <Tabs value={activeTab}
             defaultValue="likes"
             onValueChange={(value: string) => setActiveTab(value as "likes" | "comments" | "engagement")}
@@ -228,6 +229,7 @@ export default function TrendingPage() {
               )}
             </TabsContent>
           </Tabs>
+          <AIChatBot />
         </div>
       </div>
     </div>
