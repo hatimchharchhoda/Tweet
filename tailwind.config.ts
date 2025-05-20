@@ -55,7 +55,26 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+		animation: {
+      'fade-in': 'fadeIn 0.6s ease-out forwards',
+      'fade-in-up': 'fadeInUp 0.7s ease-out forwards',
+      'slide-in': 'slideIn 0.5s ease-out forwards',
+    },
+    keyframes: {
+      fadeIn: {
+        '0%': { opacity: '0' },
+        '100%': { opacity: '1' },
+      },
+      fadeInUp: {
+        '0%': { opacity: '0', transform: 'translateY(10px)' },
+        '100%': { opacity: '1', transform: 'translateY(0)' },
+      },
+      slideIn: {
+        '0%': { transform: 'translateX(-10px)', opacity: '0' },
+        '100%': { transform: 'translateX(0)', opacity: '1' },
+      },
+    },
   	}
   },
   plugins: [],
